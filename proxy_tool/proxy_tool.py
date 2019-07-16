@@ -173,7 +173,6 @@ if __name__ == '__main__':
     logger.info('Successfully got %s proxies in total' % str(len(proxies)))
     for (ip, port, protocol) in proxies:
         proxy = Proxy(ip, port, protocol)
-        # proxy = Proxy('115.196.88.247', '8118', 'http')
         telnet_result = proxy.telnet_check(max_check_times=1, timeout=2)
         if not telnet_result:
             continue
