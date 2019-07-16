@@ -224,7 +224,7 @@ if __name__ == '__main__':
     expect = '书籍推荐'
     url = 'https://www.zhihu.com/question/22818974'
     # 获取代理
-    main(expect, url)
+    main(expect, url, max_check_times=1, timeout=3)
     # 测试代理
     # proxy = 'https://140.143.48.49:1080'
     # test(expect, url, proxy)
