@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import sys
 import telnetlib
 
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-    'Accept-Encoding': 'gzip, deflate, br',
+    # 'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
     'Connection': 'keep-alive',
     'Host': '',
@@ -35,7 +35,7 @@ class Proxy(object):
         self.protocol = protocol
 
     def format(self):
-        return self.protocol + '://' + ip + ':' + port
+        return self.protocol + '://' + self.ip + ':' + self.port
 
     def telnet_check(self, max_check_times=3, timeout=3):
         for i in range(max_check_times):
@@ -73,9 +73,9 @@ class Proxy(object):
             try:
                 response = ''
                 if method.lower() == 'get':
-                    response = requests.get(url, proxies=proxies, timeout=timeout)
+                    response = requests.get(url, headers=headers, proxies=proxies, timeout=timeout)
                 elif method.lower() == 'post':
-                    response = requests.post(url, data, proxies=proxies, timeout=timeout)
+                    response = requests.post(url, data, headers=headers, proxies=proxies, timeout=timeout)
                 if response.text.find(expect) != -1:
                     return True
             except:
@@ -164,19 +164,67 @@ def get_proxies_from_xiladaili():
         return proxies
 
 
-if __name__ == '__main__':
+def main(expect, url, data=None, additional_headers=None, method='get', max_check_times=3, timeout=3):
     proxies_tmp = []
     proxies_tmp.extend(get_proxies_from_crossincode())
     proxies_tmp.extend(get_proxies_from_xicidaili())
     proxies_tmp.extend(get_proxies_from_xiladaili())
     proxies = list(set(proxies_tmp))
     logger.info('Successfully got %s proxies in total' % str(len(proxies)))
+    results = []
     for (ip, port, protocol) in proxies:
         proxy = Proxy(ip, port, protocol)
-        telnet_result = proxy.telnet_check(max_check_times=1, timeout=2)
-        if not telnet_result:
+        telnet_result = proxy.telnet_check(max_check_times=max_check_times, timeout=timeout)
+        http_result = ''
+        if telnet_result:
+            http_result = proxy.http_check(expect, url, data=data, additional_headers=additional_headers, method=method, max_check_times=max_check_times, timeout=timeout)
+        logger.info('%s  telnet_check:%s  http_check:%s' % (proxy.format(), telnet_result, http_result))
+        if not telnet_result or not http_result:
             continue
-        http_result = proxy.http_check('大明王朝1566', 'https://movie.douban.com/subject/2210001/', max_check_times=1, timeout=2)
-        if not http_result:
-            continue
-        logger.info("'" + proxy.format() + "',")
+        results.append("'" + proxy.format() + "',")
+    for result in results:
+        print(result)
+
+
+def test(expect, url, proxy, data=None, additional_headers=None, method='get', timeout=10):
+    if data is None:
+        data = {}
+    if additional_headers is None:
+        additional_headers = {}
+    result = urlparse(url)
+    headers['Host'] = result.netloc
+    headers['Referer'] = result.scheme + '://' + result.netloc + '/'
+    if list(additional_headers.keys()):
+        for key in additional_headers.keys():
+            headers[key] = additional_headers.get(key)
+    proxies = {
+        'http': proxy,
+        'https': proxy,
+    }
+    try:
+        response = ''
+        if method.lower() == 'get':
+            response = requests.get(url, headers=headers, proxies=proxies, timeout=timeout)
+        elif method.lower() == 'post':
+            response = requests.post(url, data, headers=headers, proxies=proxies, timeout=timeout)
+        print(response.text)
+        if response.text.find(expect) != -1:
+            print('Success')
+        else:
+            print('Failed')
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+
+
+if __name__ == '__main__':
+    # 豆瓣
+    # expect = '大明王朝1566'
+    # url = 'https://movie.douban.com/subject/2210001/'
+    # 知乎
+    expect = '书籍推荐'
+    url = 'https://www.zhihu.com/question/22818974'
+    # 获取代理
+    main(expect, url)
+    # 测试代理
+    # proxy = 'https://140.143.48.49:1080'
+    # test(expect, url, proxy)
