@@ -186,7 +186,7 @@ def main(expect, url, data=None, additional_headers=None, method='get', max_chec
         print(result)
 
 
-def test(expect, url, proxy, data=None, additional_headers=None, method='get', timeout=10):
+def test(expect, url, proxy, data=None, additional_headers=None, method='get'):
     if data is None:
         data = {}
     if additional_headers is None:
@@ -204,9 +204,9 @@ def test(expect, url, proxy, data=None, additional_headers=None, method='get', t
     try:
         response = ''
         if method.lower() == 'get':
-            response = requests.get(url, headers=headers, proxies=proxies, timeout=timeout)
+            response = requests.get(url, headers=headers, proxies=proxies)
         elif method.lower() == 'post':
-            response = requests.post(url, data, headers=headers, proxies=proxies, timeout=timeout)
+            response = requests.post(url, data, headers=headers, proxies=proxies)
         print(response.text)
         if response.text.find(expect) != -1:
             print('Success')
