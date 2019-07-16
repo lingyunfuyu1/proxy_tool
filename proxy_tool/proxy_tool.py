@@ -207,7 +207,7 @@ def test(expect, url, proxy, data=None, additional_headers=None, method='get'):
             response = requests.get(url, headers=headers, proxies=proxies)
         elif method.lower() == 'post':
             response = requests.post(url, data, headers=headers, proxies=proxies)
-        print(response.text)
+        # print(response.text + '\n')
         if response.text.find(expect) != -1:
             print('Success')
         else:
