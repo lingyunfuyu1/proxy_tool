@@ -205,7 +205,7 @@ def main():
         http_result = ''
         if telnet_result:
             http_result = proxy.http_check(expect, url, max_check_times=1, timeout=3)
-        logger.info('代理%：s  telnet检查结果：%s  http检查结果：%s' % (proxy.format(), telnet_result, http_result))
+        logger.info('代理：%s  telnet检查结果：%s  http检查结果：%s' % (proxy.format(), telnet_result, http_result))
         if http_result:
             results.append("'" + proxy.format() + "',")
     end = int(time.time())
