@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import telnetlib
+import time
 import traceback
 from urllib.parse import urlparse
 
@@ -126,6 +127,7 @@ def get_proxies(urls):
             logger.info('从%s成功获取到%s个代理' % (url, str(len(tmp_proxies))))
         except:
             logger.debug('发生未知异常：' + traceback.format_exc())
+    logger.info('执行去重后，共成功获取了%s个代理' % str(len(list(set(proxies)))))
     return list(set(proxies))
 
 
@@ -193,25 +195,28 @@ def main():
         'https://lab.crossincode.com/proxy/',
     ]
     proxies = get_proxies(proxy_urls)
-    logger.info('Successfully got %s proxies in total' % str(len(proxies)))
-    # 检测代理有效性
+    # 检测代理有效性，似乎可以直接使用http检测，telnet检测没有多大帮助
+    start = int(time.time())
     results = []
     for (ip, port, protocol) in proxies:
         proxy = Proxy(ip, port, protocol)
         telnet_result = ''
-        # telnet_result = proxy.telnet_check(max_check_times=3, timeout=3)
+        telnet_result = proxy.telnet_check(max_check_times=1, timeout=3)
         http_result = ''
-        http_result = proxy.http_check(expect, url, max_check_times=1, timeout=3)
-        logger.info('%s  telnet_check:%s  http_check:%s' % (proxy.format(), telnet_result, http_result))
+        if telnet_result:
+            http_result = proxy.http_check(expect, url, max_check_times=1, timeout=3)
+        logger.info('代理%：s  telnet检查结果：%s  http检查结果：%s' % (proxy.format(), telnet_result, http_result))
         if http_result:
             results.append("'" + proxy.format() + "',")
+    end = int(time.time())
+    logger.info('本次检测耗时%s秒' % str(end - start))
     for result in results:
         print(result)
 
 
 def test():
     # 代理
-    proxy = 'https://140.143.48.49:1080'
+    proxy = 'https://182.88.131.164:9797'
 
     # 豆瓣
     # expect = '大明王朝1566'
@@ -241,4 +246,4 @@ def test():
 
 if __name__ == '__main__':
     main()
-    # test()
+    test()
