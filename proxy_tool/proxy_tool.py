@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-import sys
-import telnetlib
-
 import logging
+import telnetlib
 import traceback
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +97,7 @@ class Proxy(object):
                 if response.text.find(expect) != -1:
                     return True
                 else:
-                    logger.debug('检测失败。HTTP响应内容为：' + response.text)
+                    logger.debug('查找失败！HTTP响应内容为：\n' + response.text)
             except Exception as e:
                 logger.debug('发生未知异常：' + traceback.format_exc())
         return False
@@ -180,6 +178,14 @@ def get_proxies_from_crossincode(soup):
 
 
 def main():
+    # 豆瓣
+    # expect = '大明王朝1566'
+    # url = 'https://movie.douban.com/subject/2210001/'
+
+    # 知乎
+    expect = '书籍推荐'
+    url = 'https://www.zhihu.com/question/22818974'
+
     # 获取代理列表
     proxy_urls = [
         'https://www.xicidaili.com/',
@@ -193,7 +199,7 @@ def main():
     for (ip, port, protocol) in proxies:
         proxy = Proxy(ip, port, protocol)
         telnet_result = ''
-        # telnet_result = proxy.telnet_check(max_check_times=2, timeout=2)
+        # telnet_result = proxy.telnet_check(max_check_times=3, timeout=3)
         http_result = ''
         http_result = proxy.http_check(expect, url, max_check_times=1, timeout=3)
         logger.info('%s  telnet_check:%s  http_check:%s' % (proxy.format(), telnet_result, http_result))
@@ -223,12 +229,12 @@ def test():
         'https': proxy,
     }
     try:
-        response = requests.get(url, headers=headers, proxies=proxies)
+        response = requests.get(url, headers=headers, proxies=proxies, timeout=3)
         if response.text.find(expect) != -1:
-            logger.info('Success Success Success')
+            logger.info('检测成功 检测成功 检测成功')
         else:
-            logger.debug('检测失败。HTTP响应内容为：' + response.text)
-            logger.info('Failed Failed Failed')
+            logger.debug('查找失败！HTTP响应内容为：\n' + response.text)
+            logger.info('检测失败 检测失败 检测失败')
     except:
         logger.debug('发生未知异常：' + traceback.format_exc())
 
