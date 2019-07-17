@@ -216,7 +216,7 @@ def main():
 
 def test():
     # 代理
-    proxy = 'https://182.88.131.164:9797'
+    proxy = 'http://59.38.61.227:9797'
 
     # 豆瓣
     # expect = '大明王朝1566'
@@ -238,12 +238,12 @@ def test():
         if response.text.find(expect) != -1:
             logger.info('检测成功 检测成功 检测成功')
         else:
-            logger.debug('查找失败！HTTP响应内容为：\n' + response.text)
+            logger.info('查找失败！HTTP响应内容为：\n' + response.text)
             logger.info('检测失败 检测失败 检测失败')
     except:
-        logger.debug('发生未知异常：' + traceback.format_exc())
+        logger.info('发生未知异常：' + traceback.format_exc())
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     test()
